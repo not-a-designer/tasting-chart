@@ -1,0 +1,7 @@
+{
+  "name": "spidercharts",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}
