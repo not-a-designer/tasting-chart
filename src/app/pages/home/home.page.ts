@@ -21,34 +21,53 @@ export class HomePage implements OnInit {
       r: {
         beginAtZero: true,
         ticks: { 
-          
           stepSize: 1, 
           backdropPadding: 6, 
           font: { size: 16},
           count: 6
         },
         pointLabels: {
-          font: { size: 18}
+          font: { size: 18},
+          centerPointLabels: true
         }
       },
     },
     plugins: {
       tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, .4)',
+        callbacks: {
+          label: (tooltipItem: any) => {
+            let label1 = tooltipItem.dataset.label.split(' ')[0];
+            let label2 = tooltipItem.dataset.label.split(' ').slice(1, -1);
+            let percentLabel = tooltipItem.dataset.label.split(' ').pop();
+            return [label1, label2, percentLabel]
+          }
+        },
+        backgroundColor: 'rgba(0, 0, 0, 0)',
+        bodyFont: {
+          size: 10,
+        },
+        bodyAlign: 'center',
         cornerRadius: {
           topLeft: 20,
           bottomLeft: 20,
           topRight: 20,
           bottomRight: 20
         },
+        displayColors: false,
+        padding: {
+          top: 4
+        },
         bodyColor: 'rgba(250, 250, 250, 1)',
         titleAlign: 'center',
+        //titleMarginBottom: 16,
+        titleSpacing: 8,
         xAlign: 'center',
         yAlign: 'center',
+        enabled: true,
+        bodySpacing: 4,
         usePointStyle: true,
         position: 'average',
         caretSize: 0,
-        
       }
     }
   };
@@ -57,7 +76,7 @@ export class HomePage implements OnInit {
     {
       data: [0, 1, 2, 3, 2, 4, 2, 1, 5, 4], 
       label: 'Tanzania Kokoa Kamili 70%',
-      pointHoverRadius: 20,        
+      pointHoverRadius: 50,       
       tension: .24
     }
   ];
@@ -119,7 +138,7 @@ export class HomePage implements OnInit {
     const newDataset = {
       data,
       label: `${profile.origin} ${+profile.percentage}%`,
-      pointHoverRadius: 20,
+      pointHoverRadius: 50,
       tension: .24
     };
     this.chartDatasets.push(newDataset);
