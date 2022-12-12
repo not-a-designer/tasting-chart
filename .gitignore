@@ -16,7 +16,7 @@ log.txt
 /.sourcemaps
 /.versions
 /coverage
-
+/.firebase/*
 # Ionic
 /.ionic
 /www
