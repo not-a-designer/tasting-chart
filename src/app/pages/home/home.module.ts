@@ -5,6 +5,9 @@ import { FormsModule } from '@angular/forms';
 import { HomePage } from './home.page';
 
 import { HomePageRoutingModule } from './home-routing.module';
+import { ProfileModalPageModule } from '../profile-modal/profile-modal.module';
+//import { NgxChartsModule } from '@swimlane/ngx-charts';
+import { NgChartsModule } from 'ng2-charts'
 
 
 @NgModule({
@@ -12,7 +15,9 @@ import { HomePageRoutingModule } from './home-routing.module';
     CommonModule,
     FormsModule,
     IonicModule,
-    HomePageRoutingModule
+    NgChartsModule,
+    HomePageRoutingModule,
+    ProfileModalPageModule,
   ],
   declarations: [HomePage]
 })

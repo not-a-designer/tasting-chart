@@ -1,0 +1,51 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button fill="clear" (click)="dismiss()">
+        <ion-icon name="close" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Flavor Profiles</ion-title>
+    <ion-buttons slot="end">
+      <ion-button [disabled]="!form.valid" fill="solid" color="primary" (click)="dismiss()">
+        <ion-icon name="checkmark" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+  
+</ion-header>
+
+<ion-content>
+  <form [formGroup]="form">
+    <ion-grid>
+      <ion-row class="first-row">
+        <ion-col size="7" class="ion-no-padding">
+          <ion-item lines="full">
+            <ion-label position="stacked">Origin</ion-label>
+            <ion-input formControlName="origin"></ion-input>
+          </ion-item>
+        </ion-col>
+        <ion-col size="3" class="ion-no-padding">
+          <ion-item lines="full">
+            <ion-label position="stacked">Percentage</ion-label>
+            <ion-input formControlName="percentage"></ion-input>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-item-divider color="medium">
+          <ion-label>Flavor Notes</ion-label>
+        </ion-item-divider>
+        <ion-col class="ion-no-padding" *ngFor="let flavor of labels" size="5" size-sm="2">
+          <ion-item lines="full">
+            <ion-label position="stacked">{{ flavor }}</ion-label>
+            <ion-input [formControlName]="flavor"></ion-input>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </form>
+</ion-content>
+<ion-footer>
+  <ion-toolbar></ion-toolbar>
+</ion-footer>
