@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { AlertController, ModalController } from '@ionic/angular';
+import { AlertController, ModalController, Platform } from '@ionic/angular';
 import { ChartConfiguration } from 'chart.js/auto';
 import { BaseChartDirective } from 'ng2-charts';
 import { ProfileModalPage } from '../profile-modal/profile-modal.page';
@@ -14,7 +14,7 @@ export class HomePage implements OnInit {
 
   @ViewChild(BaseChartDirective) 
   chartCanvas!: BaseChartDirective;
-
+  iOSMode: boolean = this.platform.is('ios');
   chartOptions: ChartConfiguration<'radar'>['options'] = {
     responsive: true,
     scales: {
@@ -22,13 +22,17 @@ export class HomePage implements OnInit {
         beginAtZero: true,
         ticks: { 
           stepSize: 1, 
-          backdropPadding: 6, 
+          backdropPadding: 12, 
+          padding: 10,
           font: { size: 16},
           count: 6
         },
         pointLabels: {
           font: { size: 18},
-          centerPointLabels: true
+          borderRadius: 20
+        },
+        grid: {
+          circular: true
         }
       },
     },
@@ -68,6 +72,7 @@ export class HomePage implements OnInit {
         usePointStyle: true,
         position: 'average',
         caretSize: 0,
+        
       }
     }
   };
@@ -94,7 +99,9 @@ export class HomePage implements OnInit {
     'Sweet Fruit'
   ];
 
-  constructor(private modalCtrl: ModalController, private alertCtrl: AlertController) {}
+  constructor(private modalCtrl: ModalController, 
+              private alertCtrl: AlertController, 
+              private platform: Platform) {}
 
   ngOnInit() {
   }
@@ -119,6 +126,10 @@ export class HomePage implements OnInit {
   }
 
   async presentProfileModal() {
+    /* const screenHeight: number = this.platform.height();
+    const screenWidth: number = this.platform.width();
+    
+    const breakpoint = (this.iOSMode ? 498 : 433) / screenHeight; */
     const modal = await this.modalCtrl.create({
       component: ProfileModalPage,
       breakpoints: [0,  .42],
