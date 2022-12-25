@@ -15,28 +15,28 @@
   
 </ion-header>
 
-<ion-content>
+<ion-content color="dark">
   <form [formGroup]="form">
     <ion-grid>
       <ion-row class="first-row">
         <ion-col size="7" class="ion-no-padding">
-          <ion-item lines="full">
+          <ion-item lines="full" color="dark">
             <ion-label position="stacked">Origin</ion-label>
-            <ion-input formControlName="origin"></ion-input>
+            <ion-input formControlName="origin" placeholder="Country of origin"></ion-input>
           </ion-item>
         </ion-col>
         <ion-col size="3" class="ion-no-padding">
-          <ion-item lines="full">
-            <ion-label position="stacked">Percentage</ion-label>
-            <ion-input formControlName="percentage"></ion-input>
+          <ion-item lines="full" color="dark">
+            <ion-label position="stacked">Percent</ion-label>
+            <ion-input formControlName="percent" placeholder="ex: 70%"></ion-input>
           </ion-item>
         </ion-col>
       </ion-row>
       <ion-row>
         <ion-item-divider color="medium">
-          <ion-label>Flavor Notes</ion-label>
+          <ion-label>Flavor Notes (0 - 5)</ion-label>
         </ion-item-divider>
-        <ion-col class="ion-no-padding" *ngFor="let flavor of labels" size="5" size-sm="2">
+        <ion-col class="ion-no-padding flavor-items" *ngFor="let flavor of labels" size="5" size-sm="2">
           <ion-item lines="full">
             <ion-label position="stacked">{{ flavor }}</ion-label>
             <ion-input [formControlName]="flavor"></ion-input>

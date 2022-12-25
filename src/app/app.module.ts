@@ -9,6 +9,7 @@ import { environment } from '../environments/environment'
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { SavedProfilesService } from './services/saved-profiles.service';
+import { JoyrideModule } from 'ngx-joyride';
 
 @NgModule({
   declarations: [AppComponent],
@@ -16,6 +17,7 @@ import { SavedProfilesService } from './services/saved-profiles.service';
     BrowserModule, 
     provideFirebaseApp(() => initializeApp(environment.firebaseConfig)), 
     IonicModule.forRoot(), 
+    JoyrideModule.forRoot(),
     BrowserAnimationsModule, 
     AppRoutingModule
   ],

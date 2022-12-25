@@ -29,7 +29,7 @@ export class ProfileModalPage implements OnInit {
   ngOnInit() {
     this.form = this.fb.group({
       origin: ['', [Validators.required]],
-      percentage: [70, [Validators.required, Validators.min(37), Validators.max(100)]]
+      percent: [70, [Validators.required, Validators.min(37), Validators.max(100)]]
     });
     this.createFormControls(this.form);
 

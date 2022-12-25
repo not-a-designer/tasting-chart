@@ -7,6 +7,7 @@ import { IonicModule } from '@ionic/angular';
 import { ProfileModalPageRoutingModule } from './profile-modal-routing.module';
 
 import { ProfileModalPage } from './profile-modal.page';
+import { JoyrideModule } from 'ngx-joyride';
 
 @NgModule({
   imports: [
@@ -14,6 +15,7 @@ import { ProfileModalPage } from './profile-modal.page';
     FormsModule,
     ReactiveFormsModule,
     IonicModule,
+    JoyrideModule.forChild(),
     ProfileModalPageRoutingModule
   ],
   declarations: [ProfileModalPage]

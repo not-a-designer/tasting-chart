@@ -5,3 +5,15 @@ ion-grid {
 .first-row {
     margin-bottom: 4px;
 } */
+
+ion-col.flavor-items {
+    > ion-item {
+        --background:var(--ion-color-dark);
+        --color: var(--ion-color-light);
+        //--border-color: #eee;
+    }
+    ion-item:nth-child(odd) {
+        border-right: .55px solid #eee;
+    }
+}
+    

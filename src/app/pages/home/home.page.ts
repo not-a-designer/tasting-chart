@@ -2,6 +2,9 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { AlertController, ModalController, Platform } from '@ionic/angular';
 import { ChartConfiguration } from 'chart.js/auto';
 import { BaseChartDirective } from 'ng2-charts';
+import { JoyrideService } from 'ngx-joyride';
+import { JoyrideOptions } from 'ngx-joyride/lib/models/joyride-options.class';
+import { Preferences } from '@capacitor/preferences'
 import { ProfileModalPage } from '../profile-modal/profile-modal.page';
 
 
@@ -19,21 +22,32 @@ export class HomePage implements OnInit {
     responsive: true,
     scales: {
       r: {
+        max: 5,
+        min: 0,
+        angleLines: {
+          color: 'rgba(255, 255, 255, .5)'
+        },
         beginAtZero: true,
         ticks: { 
           stepSize: 1, 
-          backdropPadding: 12, 
-          padding: 10,
+          //backdropPadding: 12, 
+          //padding: 10,
+          showLabelBackdrop: false,
+          color: 'rgba(255, 255, 255, 1)',
           font: { size: 16},
-          count: 6
+          count: 6,
         },
         pointLabels: {
           font: { size: 18},
-          borderRadius: 20
+          borderRadius: 20,
+          color: 'rgba(255, 255, 255, 1)'
         },
         grid: {
-          circular: true
-        }
+          circular: true,
+          tickColor: 'rgba(255, 255, 255, .3)',
+          color: 'rgba(255, 255, 255, .3)',
+        },
+    
       },
     },
     plugins: {
@@ -61,7 +75,7 @@ export class HomePage implements OnInit {
         padding: {
           top: 4
         },
-        bodyColor: 'rgba(250, 250, 250, 1)',
+        bodyColor: 'rgba(250, 250, 250, .6)',
         titleAlign: 'center',
         //titleMarginBottom: 16,
         titleSpacing: 8,
@@ -72,7 +86,19 @@ export class HomePage implements OnInit {
         usePointStyle: true,
         position: 'average',
         caretSize: 0,
-        
+      },
+      legend: {
+        display: true,
+        position:'bottom',
+        align: 'center',
+        labels: {
+          color: 'rgba(255, 255, 255, 1)',
+          textAlign: 'center',
+          boxHeight: 20,
+          boxWidth: 20,
+          useBorderRadius: true,
+          borderRadius: 10
+        }
       }
     }
   };
@@ -99,11 +125,43 @@ export class HomePage implements OnInit {
     'Sweet Fruit'
   ];
 
+  tourOptions: JoyrideOptions = {
+    steps: [
+      'step1', //mainChart
+      'step2', //add profile
+      'step3', //reset
+    ],
+    themeColor: '',
+  }
+
+  stepContent: Array<string> = [
+    `This spider chart will display your flavor profiles. \n
+    Tap the points for details, & tap the origin to toggle it on/off`,
+    'click here to add your new flavor profile',
+    'reset the the chart to start over'
+  ];
+
   constructor(private modalCtrl: ModalController, 
               private alertCtrl: AlertController, 
-              private platform: Platform) {}
+              private platform: Platform,
+              private joyrideService: JoyrideService) {}
 
-  ngOnInit() {
+  async ngOnInit() {
+    const introStatus: string = await this.getIntroductionStatus();
+    setTimeout(() => introStatus === 'false' && this.startTour(), 500);
+  }
+
+  startTour() {
+    this.joyrideService.startTour(this.tourOptions).subscribe(() => this.setIntroductionStatus());
+  }
+
+  async setIntroductionStatus() {
+    await Preferences.set({key: 'introCompleted', value: 'true'});
+  }
+
+  async getIntroductionStatus(): Promise<string> {
+    const { value } = await Preferences.get({key: 'introCompleted'});
+    return value ?? 'false';
   }
 
   async resetChart() {
@@ -126,14 +184,15 @@ export class HomePage implements OnInit {
   }
 
   async presentProfileModal() {
-    /* const screenHeight: number = this.platform.height();
+    const screenHeight: number = this.platform.height();
     const screenWidth: number = this.platform.width();
-    
-    const breakpoint = (this.iOSMode ? 498 : 433) / screenHeight; */
+    let breakpoint: number;
+    if (screenWidth < 576) breakpoint = (this.iOSMode ? 515 : 433) / screenHeight;
+    else breakpoint = (this.iOSMode ? 294 : 265) / screenHeight;
     const modal = await this.modalCtrl.create({
       component: ProfileModalPage,
-      breakpoints: [0,  .42],
-      initialBreakpoint: .42,
+      breakpoints: [0,  breakpoint],
+      initialBreakpoint: breakpoint,
       handle: true,
       handleBehavior: 'cycle',
       backdropDismiss: false
@@ -148,7 +207,7 @@ export class HomePage implements OnInit {
     Object.values(profile).slice(2).forEach((p: any) => data.push(+p));
     const newDataset = {
       data,
-      label: `${profile.origin} ${+profile.percentage}%`,
+      label: `${profile.origin} ${+profile.percent}%`,
       pointHoverRadius: 50,
       tension: .24
     };

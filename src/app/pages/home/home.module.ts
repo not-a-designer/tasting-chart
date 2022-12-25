@@ -7,6 +7,7 @@ import { HomePage } from './home.page';
 import { HomePageRoutingModule } from './home-routing.module';
 import { ProfileModalPageModule } from '../profile-modal/profile-modal.module';
 import { NgChartsModule } from 'ng2-charts'
+import { JoyrideModule } from 'ngx-joyride';
 
 
 @NgModule({
@@ -15,6 +16,7 @@ import { NgChartsModule } from 'ng2-charts'
     FormsModule,
     IonicModule,
     NgChartsModule,
+    JoyrideModule.forChild(),
     HomePageRoutingModule,
     ProfileModalPageModule,
   ],
