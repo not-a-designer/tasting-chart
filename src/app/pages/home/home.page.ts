@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { AlertController, ModalController, Platform } from '@ionic/angular';
-import { ChartConfiguration } from 'chart.js/auto';
+import Chart, { ChartConfiguration, ChartDataset, LegendItem, Colors } from 'chart.js/auto';
 import { BaseChartDirective } from 'ng2-charts';
 import { JoyrideService } from 'ngx-joyride';
 import { JoyrideOptions } from 'ngx-joyride/lib/models/joyride-options.class';
@@ -18,6 +18,7 @@ export class HomePage implements OnInit {
 
   @ViewChild(BaseChartDirective) 
   chartCanvas!: BaseChartDirective;
+  truncateText = (text: string) => text.substring(0, 11) + '...';
   iOSMode: boolean = this.platform.is('ios');
   chartOptions: ChartConfiguration<'radar'>['options'] = {
     responsive: true,
@@ -32,8 +33,6 @@ export class HomePage implements OnInit {
         beginAtZero: true,
         ticks: { 
           stepSize: 1, 
-          //backdropPadding: 12, 
-          //padding: 10,
           showLabelBackdrop: false,
           color: 'rgba(255, 255, 255, 1)',
           font: { size: 16},
@@ -55,16 +54,17 @@ export class HomePage implements OnInit {
     plugins: {
       tooltip: {
         callbacks: {
-          label: (tooltipItem: any) => {
-            let label1 = tooltipItem.dataset.label.split(' ')[0];
-            let label2 = tooltipItem.dataset.label.split(' ').slice(1, -1);
-            let percentLabel = tooltipItem.dataset.label.split(' ').pop();
-            return [label1, label2, percentLabel]
+          title: (tooltipItem: any) => tooltipItem.label,
+          label: (tooltipItem: any) => {  
+            //console.log(tooltipItem)  
+            const {dataIndex} = tooltipItem;                            
+            return tooltipItem.dataset.data[dataIndex];
           }
         },
         backgroundColor: 'rgba(0, 0, 0, 0)',
         bodyFont: {
-          size: 10,
+          size: 16,
+          style: 'oblique'
         },
         bodyAlign: 'center',
         cornerRadius: {
@@ -94,12 +94,28 @@ export class HomePage implements OnInit {
         position: 'top',
         align: 'center',
         labels: {
-          color: 'rgba(255, 255, 255, 1)',
-          textAlign: 'center',
-          boxHeight: 20,
-          boxWidth: 20,
+          generateLabels: (chart: Chart<'radar'>) => {
+            return chart.data.datasets.map((dataset: ChartDataset, i: number) => {
+              
+              return {
+                text: dataset.label.length > 15 ? this.truncateText(dataset.label) : dataset.label,
+                fillStyle: dataset.backgroundColor,
+                strokeStyle: dataset.backgroundColor,
+                textAlign: 'center',
+                datasetIndex: i,
+                borderRadius: 10,
+                fontColor: dataset.backgroundColor,
+                hidden: dataset.hidden,
+              } as LegendItem;
+            })
+          },
+          boxPadding: 10,
+          borderRadius: 10,
           useBorderRadius: true,
-          borderRadius: 10
+          boxWidth: 20,
+          boxHeight: 20,
+          //color: Chart.default.color,
+          
         }
       }
     }
@@ -108,9 +124,13 @@ export class HomePage implements OnInit {
   chartDatasets: ChartConfiguration<'radar'>['data']['datasets'] = [
     {
       data: [0, 1, 2, 3, 2, 4, 2, 1, 5, 4], 
-      label: 'Tanzania Kokoa Kamili 70%',
+      label: '70% Tanzania Kokoa Kamili',
       pointHoverRadius: 50,       
-      tension: .24
+      tension: .24,
+      backgroundColor: '#FF3F77',
+      borderColor: '#FF3FAA',
+      showLine: true
+      
     }
   ];
     
@@ -142,8 +162,8 @@ export class HomePage implements OnInit {
   }
 
   stepContent: Array<string> = [
-    `This spider chart will display your flavor profiles. \n
-    Tap the points for details, & tap the origin to toggle it on/off`,
+    `This spider chart will display your flavor profiles. 
+    Tap the points for details and tap the origin to toggle it on/off`,
     'click here to add your new flavor profile',
     `Enter your chocolate's origin`,
     'Enter your chocolate percent. Default is 70',
@@ -204,7 +224,6 @@ export class HomePage implements OnInit {
   }
 
   
-
   startTour() {
     setTimeout(() => this.joyrideService.startTour(this.tourOptions), 200);
   }
@@ -259,11 +278,13 @@ export class HomePage implements OnInit {
   addToDataset() {
     this.closeProfileModal();
     let data: Array<number> = [];
-    const { origin, percent } = this.form.value
+    const { origin, percent } = this.form.value;
+    console.log(this.form.value);
     Object.values(this.form.value).slice(2).forEach((p: any) => data.push(+p));
+    console.log('data', data);
     const newDataset = {
       data,
-      label: `${origin} ${+percent}%`,
+      label: ` ${+percent}% ${origin}`,
       pointHoverRadius: 50,
       tension: .24
     };
