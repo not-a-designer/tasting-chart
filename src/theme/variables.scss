@@ -234,3 +234,32 @@
     --ion-card-background: #1e1e1e;
   } */
 }
+
+
+.joyride-step__holder {
+  
+}
+.joyride-step__container {
+  background-color: var(--ion-color-dark) !important;
+  color: var(--ion-color-light) !important;
+  border: .55px solid var(--ion-color-light) !important;
+}
+
+.joyride-step__close > svg line {
+  stroke: var(--ion-color-light) !important;
+}
+.joyride-arrow__right {
+  margin-left: 1px;
+}
+.joyride-bottom {
+  margin-top: 1.5px;
+}
+
+/* ion-modal {
+  --max-height: 274px !important;
+}
+
+.ios ion-modal {
+  --max-height: 289px;
+} */
+

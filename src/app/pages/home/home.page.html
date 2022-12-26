@@ -8,9 +8,12 @@
     <ion-title>Eldora Tasting Chart</ion-title>
     <ion-buttons slot="end">
       <ion-button 
-        joyrideStep="step3" 
+        joyrideStep="step6" 
         [title]="'Reset Chart'" 
-        [text]="stepContent[2]" 
+        [text]="stepContent[5]" 
+        [doneTemplate]="doneButton"
+        (prev)="openProfileModal()"
+        (done)="setIntroductionStatus()"
         color="danger" 
         fill="solid" 
         (click)="resetChart()">
@@ -19,11 +22,13 @@
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
-<ion-content color="dark">
+<ion-content color="dark" scrollY="false">
   <canvas 
   joyrideStep="step1"
   [title]="'Chart'"
   [text]="stepContent[0]"
+  [nextTemplate]="nextButton"
+  [stepPosition]="'center'"
   baseChart 
   class="chart"
   [datasets]="chartDatasets" 
@@ -31,14 +36,107 @@
   [options]="chartOptions" 
   type="radar"></canvas>
 </ion-content>
-
-
+<ng-template #closeButton>
+  <ion-button fill="clear">
+    <ion-icon name="close" color="light" slot="icon-only"></ion-icon>
+  </ion-button>
+</ng-template>
+<ng-template #prevButton>
+  <ion-button color="medium">Prev</ion-button>
+</ng-template>
+<ng-template #nextButton>
+  <ion-button color="medium">Next</ion-button>
+</ng-template>
+<ng-template #doneButton>
+  <ion-button color="secondary">Done</ion-button>
+</ng-template>
 <ion-fab vertical="bottom" horizontal="end">
   <ion-fab-button 
     joyrideStep="step2" 
     [title]="'Add Profile'" 
     [text]="stepContent[1]" 
-    (click)="presentProfileModal()">
+    [nextTemplate]="nextButton"
+    [prevTemplate]="prevButton"
+    (next)="openProfileModal()"
+    (click)="openProfileModal()">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
 </ion-fab>
+
+<ion-modal 
+  [isOpen]="isProfileModalOpen" 
+  [breakpoints]="[0, breakpoint]"
+  [initialBreakpoint]="breakpoint"
+  handle="false"
+  (didDismiss)="onDidDismiss($event)">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-buttons slot="start">
+          <ion-button fill="clear" color="light" (click)="closeProfileModal()">
+            <ion-icon name="chevron-down" slot="icon-only"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+        <ion-title>Flavor Profiles</ion-title>
+        <ion-buttons slot="end">
+          <ion-button [disabled]="!form.valid" fill="solid" color="primary" (click)="addToDataset()">
+            <ion-icon name="checkmark" slot="icon-only"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    
+    <ion-content color="dark">
+      <form [formGroup]="form">
+        <ion-grid>
+          <ion-row class="first-row">
+            <ion-col size="7" class="ion-no-padding">
+              <ion-item lines="full" color="dark">
+                <ion-label position="stacked">Origin</ion-label>
+                <ion-input 
+                  joyrideStep="step3" 
+                  [title]="'Chocolate Origin'"
+                  [text]="stepContent[2]"
+                  (prev)="closeProfileModal()"
+                  formControlName="origin" 
+                  placeholder="Country of origin">
+                </ion-input>
+              </ion-item>
+            </ion-col>
+            <ion-col size="3" class="ion-no-padding">
+              <ion-item lines="full" color="dark">
+                <ion-label position="stacked">Percent</ion-label>
+                <ion-input 
+                  joyrideStep="step4"
+                  [title]="'Percent'"
+                  [text]="stepContent[3]"
+                  formControlName="percent" 
+                  placeholder="ex: 70"></ion-input>
+              </ion-item>
+            </ion-col>
+          </ion-row>
+          <ion-row 
+            joyrideStep="step5" 
+            [title]="'Flavors'" 
+            [text]="stepContent[4]" 
+            (next)="closeProfileModal()">
+            <ion-item-divider color="medium">
+              <ion-label>Flavor Notes (0 - 5)</ion-label>
+            </ion-item-divider>
+            <ion-col 
+              class="ion-no-padding flavor-items" 
+              *ngFor="let flavor of labels"
+              size="5" 
+              size-sm="2">
+              <ion-item lines="full">
+                <ion-label position="stacked">{{ flavor }}</ion-label>
+                <ion-input [formControlName]="flavor"></ion-input>
+              </ion-item>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </form>
+    </ion-content>
+  </ng-template>
+</ion-modal>
+

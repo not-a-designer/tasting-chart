@@ -16,3 +16,26 @@ ion-avatar {
     width: 48px;
     height: 48px;
 }
+
+ion-grid {
+    --ion-grid-columns: 10;
+}
+/* 
+.first-row {
+    margin-bottom: 4px;
+} */
+
+ion-col.flavor-items {
+    > ion-item {
+        --background:var(--ion-color-dark);
+        --color: var(--ion-color-light);
+        --border-color: var(--ion-color-light);
+    }
+    ion-item:nth-child(odd) {
+        border-right: .55px solid var(--ion-color-light);
+    }
+}
+
+.ios ion-modal ion-content {
+    max-height: 289px;
+}

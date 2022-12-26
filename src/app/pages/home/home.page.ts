@@ -4,8 +4,9 @@ import { ChartConfiguration } from 'chart.js/auto';
 import { BaseChartDirective } from 'ng2-charts';
 import { JoyrideService } from 'ngx-joyride';
 import { JoyrideOptions } from 'ngx-joyride/lib/models/joyride-options.class';
-import { Preferences } from '@capacitor/preferences'
-import { ProfileModalPage } from '../profile-modal/profile-modal.page';
+import { Preferences } from '@capacitor/preferences';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { debounceTime } from 'rxjs';
 
 
 @Component({
@@ -24,6 +25,7 @@ export class HomePage implements OnInit {
       r: {
         max: 5,
         min: 0,
+        alignToPixels: true,
         angleLines: {
           color: 'rgba(255, 255, 255, .5)'
         },
@@ -89,7 +91,7 @@ export class HomePage implements OnInit {
       },
       legend: {
         display: true,
-        position:'bottom',
+        position: 'top',
         align: 'center',
         labels: {
           color: 'rgba(255, 255, 255, 1)',
@@ -129,30 +131,82 @@ export class HomePage implements OnInit {
     steps: [
       'step1', //mainChart
       'step2', //add profile
-      'step3', //reset
+      'step3', //profile modal origin
+      'step4', //profile modal percent
+      'step5', //profile flavors
+      'step6'  //reset
     ],
-    themeColor: '',
+    showCounter: false,
+    themeColor: '#eeeeee',
+    waitingTime: 300
   }
 
   stepContent: Array<string> = [
     `This spider chart will display your flavor profiles. \n
     Tap the points for details, & tap the origin to toggle it on/off`,
     'click here to add your new flavor profile',
+    `Enter your chocolate's origin`,
+    'Enter your chocolate percent. Default is 70',
+    'Enter the levels of flavor you perceive, no wrong answers',
     'reset the the chart to start over'
   ];
+
+  isProfileModalOpen: boolean = false;
+  form!: FormGroup;
+  breakpoint: number;
 
   constructor(private modalCtrl: ModalController, 
               private alertCtrl: AlertController, 
               private platform: Platform,
+              private fb: FormBuilder,
               private joyrideService: JoyrideService) {}
 
   async ngOnInit() {
+    const screenHeight: number = this.platform.height();
+    const screenWidth: number = this.platform.width();
+    if (screenWidth < 576) this.breakpoint = (this.iOSMode ? 515 : 433) / screenHeight;
+    else this.breakpoint = (this.iOSMode ? 294 : 265) / screenHeight;
+    this.intializeProfileForm();
     const introStatus: string = await this.getIntroductionStatus();
-    setTimeout(() => introStatus === 'false' && this.startTour(), 500);
+    if (introStatus !== 'true') this.startTour();
   }
 
+  intializeProfileForm() {
+    this.form = this.fb.group({
+      origin: ['', [Validators.required]],
+      percent: [70, [Validators.required, Validators.min(37), Validators.max(100)]]
+    });
+    this.createFormControls(this.form);
+
+    this.form.valueChanges.pipe(
+      debounceTime(1000)
+    ).subscribe((values) => {
+      Object.values<number>(values).slice(2).map((val, index: number) => {
+        const currentControl: FormControl = this.form.controls[this.labels[index]] as FormControl;
+        currentControl.setValue(val > 5 ? 5 : (val < 0 ? 0 : val), { emitEvent: false});
+      });
+    });
+  }
+
+  createFormControls(form: FormGroup) {
+    this.labels.map((label) => {
+      form.addControl(label, new FormControl('', [Validators.required, Validators.min(0), Validators.max(5)]))
+    });
+  }
+
+  onDidDismiss(event: any) {
+    console.log(event);
+  }
+
+  async dismiss() {
+    const top = await this.modalCtrl.getTop();
+    top && await top.dismiss(this.form.valid ? this.form.value : null);
+  }
+
+  
+
   startTour() {
-    this.joyrideService.startTour(this.tourOptions).subscribe(() => this.setIntroductionStatus());
+    setTimeout(() => this.joyrideService.startTour(this.tourOptions), 200);
   }
 
   async setIntroductionStatus() {
@@ -183,7 +237,7 @@ export class HomePage implements OnInit {
     await alert.present();
   }
 
-  async presentProfileModal() {
+  /* async presentProfileModal() {
     const screenHeight: number = this.platform.height();
     const screenWidth: number = this.platform.width();
     let breakpoint: number;
@@ -200,19 +254,56 @@ export class HomePage implements OnInit {
     await modal.present();
     const { data } = await modal.onDidDismiss();
     if (data) this.addDatasets(data);
-  }
+  } */
 
-  addDatasets(profile: any) {
-    let data: Array<number> = []
-    Object.values(profile).slice(2).forEach((p: any) => data.push(+p));
+  addToDataset() {
+    this.closeProfileModal();
+    let data: Array<number> = [];
+    const { origin, percent } = this.form.value
+    Object.values(this.form.value).slice(2).forEach((p: any) => data.push(+p));
     const newDataset = {
       data,
-      label: `${profile.origin} ${+profile.percent}%`,
+      label: `${origin} ${+percent}%`,
       pointHoverRadius: 50,
       tension: .24
     };
     this.chartDatasets.push(newDataset);
     this.chartCanvas.chart?.data?.datasets?.push(newDataset);
     this.chartCanvas.chart?.update();
+  }
+
+  openProfileModal() {
+    this.isProfileModalOpen = true;
+  }
+  closeProfileModal() {
+    this.isProfileModalOpen = false;
+  }
+
+  profileIntro() {
+    this.openProfileModal();
+    //setTimeout(null, 1000)
+  }
+
+  profileIntroDone() {
+    this.closeProfileModal();
+    //setTimeout(()=> {}, 500)
+  }
+
+  async showProfileIntro() {
+    //this.isProfileModalOpen = true;
+    /* const screenHeight: number = this.platform.height();
+    const screenWidth: number = this.platform.width();
+    let breakpoint: number;
+    if (screenWidth < 576) breakpoint = (this.iOSMode ? 515 : 433) / screenHeight;
+    else breakpoint = (this.iOSMode ? 294 : 265) / screenHeight;
+    const modal = await this.modalCtrl.create({
+      component: ProfileModalPage,
+      breakpoints: [0,  breakpoint],
+      initialBreakpoint: breakpoint,
+      handle: true,
+      handleBehavior: 'cycle',
+      backdropDismiss: false
+    });
+    await modal.present(); */
   }
 }
