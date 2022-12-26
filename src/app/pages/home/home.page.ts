@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { AlertController, ModalController, Platform } from '@ionic/angular';
-import Chart, { ChartConfiguration, ChartDataset, LegendItem, Colors } from 'chart.js/auto';
+import Chart, { ChartConfiguration, ChartDataset, LegendItem, Colors, TooltipItem } from 'chart.js/auto';
 import { BaseChartDirective } from 'ng2-charts';
 import { JoyrideService } from 'ngx-joyride';
 import { JoyrideOptions } from 'ngx-joyride/lib/models/joyride-options.class';
@@ -54,17 +54,29 @@ export class HomePage implements OnInit {
     plugins: {
       tooltip: {
         callbacks: {
-          title: (tooltipItem: any) => tooltipItem.label,
+          title: ((tooltipItem: any) => { return tooltipItem[0].label.split(' ').pop() 
+                     /* console.log(tooltipItem)
+            let {label}: { label:string } = tooltipItem[0];
+            console.log('label', label);
+            const words: string[] = label.split(' ');
+            words.pop();
+            return (words.length === 1) 
+              ? words[0]
+              : `${words[0]} ${words[1]}` */
+          }),
           label: (tooltipItem: any) => {  
             //console.log(tooltipItem)  
             const {dataIndex} = tooltipItem;                            
-            return tooltipItem.dataset.data[dataIndex];
+            return tooltipItem.dataset.data[dataIndex] || '0';
           }
         },
         backgroundColor: 'rgba(0, 0, 0, 0)',
         bodyFont: {
-          size: 16,
-          style: 'oblique'
+          size: 24,
+          weight: 'bold',
+        },
+        titleFont: {
+          size: 36
         },
         bodyAlign: 'center',
         cornerRadius: {
@@ -77,7 +89,7 @@ export class HomePage implements OnInit {
         padding: {
           top: 4
         },
-        bodyColor: 'rgba(250, 250, 250, .6)',
+        bodyColor: 'rgba(250, 250, 250, .9)',
         titleAlign: 'center',
         //titleMarginBottom: 16,
         titleSpacing: 8,
@@ -94,9 +106,15 @@ export class HomePage implements OnInit {
         position: 'top',
         align: 'center',
         labels: {
-          generateLabels: (chart: Chart<'radar'>) => {
+          boxPadding: 10,
+          borderRadius: 10,
+          useBorderRadius: true,
+          boxWidth: 20,
+          boxHeight: 20,
+          
+          color: '#FF3F77'
+          /* generateLabels: (chart: Chart<'radar'>) => {
             return chart.data.datasets.map((dataset: ChartDataset, i: number) => {
-              
               return {
                 text: dataset.label.length > 15 ? this.truncateText(dataset.label) : dataset.label,
                 fillStyle: dataset.backgroundColor,
@@ -107,14 +125,9 @@ export class HomePage implements OnInit {
                 fontColor: dataset.backgroundColor,
                 hidden: dataset.hidden,
               } as LegendItem;
-            })
-          },
-          boxPadding: 10,
-          borderRadius: 10,
-          useBorderRadius: true,
-          boxWidth: 20,
-          boxHeight: 20,
-          //color: Chart.default.color,
+            }) */
+          //},
+          
           
         }
       }
@@ -127,24 +140,23 @@ export class HomePage implements OnInit {
       label: '70% Tanzania Kokoa Kamili',
       pointHoverRadius: 50,       
       tension: .24,
-      backgroundColor: '#FF3F77',
-      borderColor: '#FF3FAA',
+      
       showLine: true
       
     }
   ];
     
   labels: Array<string> = [
-    'Cacao',
-    'Caramel',
-    'Nutty',
-    'Floral',
-    'Earthy',
-    'Spicy',
-    'Vegetal',
-    'Dairy',
-    'Sour Fruit',
-    'Sweet Fruit'
+    'Cacao 🍫',
+    'Caramel 🍬',
+    'Nutty 🌰',
+    'Floral 🌼',
+    'Earthy 🪨',
+    'Spicy 🌶',
+    'Vegetal 🥦',
+    'Dairy 🥛',
+    'Sour Fruit 🍍',
+    'Sweet Fruit 🍑'
   ];
 
   tourOptions: JoyrideOptions = {
@@ -249,7 +261,7 @@ export class HomePage implements OnInit {
         role: 'destructive',
         handler: () => {
           this.chartDatasets = [];
-        this.chartCanvas.chart?.update();
+          this.chartCanvas.chart?.update();
         }
       }]
     });
@@ -291,6 +303,8 @@ export class HomePage implements OnInit {
     this.chartDatasets.push(newDataset);
     this.chartCanvas.chart?.data?.datasets?.push(newDataset);
     this.chartCanvas.chart?.update();
+    this.form.reset();
+    this.intializeProfileForm();
   }
 
   openProfileModal() {
