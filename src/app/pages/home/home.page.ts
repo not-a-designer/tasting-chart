@@ -1,10 +1,11 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { AlertController, ModalController, Platform } from '@ionic/angular';
-import Chart, { ChartConfiguration, ChartDataset, LegendItem, Colors, TooltipItem } from 'chart.js/auto';
+import { ChartConfiguration } from 'chart.js/auto';
 import { BaseChartDirective } from 'ng2-charts';
 import { JoyrideService } from 'ngx-joyride';
 import { JoyrideOptions } from 'ngx-joyride/lib/models/joyride-options.class';
 import { Preferences } from '@capacitor/preferences';
+import { Share, ShareOptions, CanShareResult, ShareResult} from '@capacitor/share';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { debounceTime } from 'rxjs';
 
@@ -17,10 +18,12 @@ import { debounceTime } from 'rxjs';
 export class HomePage implements OnInit {
 
   @ViewChild(BaseChartDirective) 
-  chartCanvas!: BaseChartDirective;
-  truncateText = (text: string) => text.substring(0, 11) + '...';
-  iOSMode: boolean = this.platform.is('ios');
-  chartOptions: ChartConfiguration<'radar'>['options'] = {
+  public chartCanvas!: BaseChartDirective;
+
+  private truncateText = (text: string) => text.substring(0, 11) + '...';
+  private iOSMode: boolean = this.platform.is('ios');
+
+  public chartOptions: ChartConfiguration<'radar'>['options'] = {
     responsive: true,
     scales: {
       r: {
@@ -41,7 +44,10 @@ export class HomePage implements OnInit {
         pointLabels: {
           font: { size: 18},
           borderRadius: 20,
-          color: 'rgba(255, 255, 255, 1)'
+          color: 'rgba(255, 255, 255, 1)',
+          callback: (label, index) => {
+            return (this.platform.isPortrait()) ? label.split(' ')[0] : label;
+          }
         },
         grid: {
           circular: true,
@@ -54,7 +60,7 @@ export class HomePage implements OnInit {
     plugins: {
       tooltip: {
         callbacks: {
-          title: ((tooltipItem: any) => { return tooltipItem[0].label.split(' ').pop() 
+          title: ((tooltipItem: any) => { return tooltipItem[0].label.split(' ')[0] 
                      /* console.log(tooltipItem)
             let {label}: { label:string } = tooltipItem[0];
             console.log('label', label);
@@ -91,7 +97,6 @@ export class HomePage implements OnInit {
         },
         bodyColor: 'rgba(250, 250, 250, .9)',
         titleAlign: 'center',
-        //titleMarginBottom: 16,
         titleSpacing: 8,
         xAlign: 'center',
         yAlign: 'center',
@@ -103,7 +108,7 @@ export class HomePage implements OnInit {
       },
       legend: {
         display: true,
-        position: 'top',
+        position: this.platform.isPortrait() ? 'bottom' : 'top',
         align: 'center',
         labels: {
           boxPadding: 10,
@@ -111,30 +116,13 @@ export class HomePage implements OnInit {
           useBorderRadius: true,
           boxWidth: 20,
           boxHeight: 20,
-          
-          color: '#FF3F77'
-          /* generateLabels: (chart: Chart<'radar'>) => {
-            return chart.data.datasets.map((dataset: ChartDataset, i: number) => {
-              return {
-                text: dataset.label.length > 15 ? this.truncateText(dataset.label) : dataset.label,
-                fillStyle: dataset.backgroundColor,
-                strokeStyle: dataset.backgroundColor,
-                textAlign: 'center',
-                datasetIndex: i,
-                borderRadius: 10,
-                fontColor: dataset.backgroundColor,
-                hidden: dataset.hidden,
-              } as LegendItem;
-            }) */
-          //},
-          
-          
+          color: '#FF3F77'       
         }
       }
     }
   };
   
-  chartDatasets: ChartConfiguration<'radar'>['data']['datasets'] = [
+  public chartDatasets: ChartConfiguration<'radar'>['data']['datasets'] = [
     {
       data: [0, 1, 2, 3, 2, 4, 2, 1, 5, 4], 
       label: '70% Tanzania Kokoa Kamili',
@@ -146,20 +134,20 @@ export class HomePage implements OnInit {
     }
   ];
     
-  labels: Array<string> = [
-    'Cacao 🍫',
-    'Caramel 🍬',
-    'Nutty 🌰',
-    'Floral 🌼',
-    'Earthy 🪨',
-    'Spicy 🌶',
-    'Vegetal 🥦',
-    'Dairy 🥛',
-    'Sour Fruit 🍍',
-    'Sweet Fruit 🍑'
+  public labels: Array<string> = [
+    '🍫 Cacao',
+    '🌰 Nut/Spice',
+    '🥛 Dairy',
+    '🍬 Sweet',
+    '🌼 Floral',
+    '🍍 Fruity',
+    '🍋 Sour',
+    '🪨 Earthy',
+    '🥦 Vegetal',
+    '🍞 Roasty '
   ];
 
-  tourOptions: JoyrideOptions = {
+  private tourOptions: JoyrideOptions = {
     steps: [
       'step1', //mainChart
       'step2', //add profile
@@ -170,22 +158,30 @@ export class HomePage implements OnInit {
     ],
     showCounter: false,
     themeColor: '#eeeeee',
-    waitingTime: 300
+    waitingTime: 400
   }
 
-  stepContent: Array<string> = [
+  private reminderOptions: JoyrideOptions = {
+    steps: [ 'step2'],
+    showPrevButton: false,
+    showCounter: false,
+    themeColor: '#eeeeee',
+  }
+
+  public stepContent: Array<string> = [
     `This spider chart will display your flavor profiles. 
     Tap the points for details and tap the origin to toggle it on/off`,
     'click here to add your new flavor profile',
     `Enter your chocolate's origin`,
     'Enter your chocolate percent. Default is 70',
     'Enter the levels of flavor you perceive, no wrong answers',
-    'reset the the chart to start over'
+    'reset the the chart to start over',
   ];
 
-  isProfileModalOpen: boolean = false;
-  form!: FormGroup;
-  breakpoint: number;
+  public isProfileModalOpen: boolean = false;
+  public form!: FormGroup;
+  public breakpoint: number;
+  public introStatus: boolean = false;
 
   constructor(private modalCtrl: ModalController, 
               private alertCtrl: AlertController, 
@@ -199,8 +195,12 @@ export class HomePage implements OnInit {
     if (screenWidth < 576) this.breakpoint = (this.iOSMode ? 515 : 433) / screenHeight;
     else this.breakpoint = (this.iOSMode ? 294 : 265) / screenHeight;
     this.intializeProfileForm();
-    const introStatus: string = await this.getIntroductionStatus();
-    if (introStatus !== 'true') this.startTour();
+    this.introStatus = await this.getIntroductionStatus();
+    if (!this.introStatus) this.startTour(this.tourOptions);
+    else {
+      this.startTour(this.reminderOptions);
+      this.chartDatasets = [];
+    }
   }
 
   intializeProfileForm() {
@@ -227,7 +227,7 @@ export class HomePage implements OnInit {
   }
 
   onDidDismiss(event: any) {
-    console.log(event);
+    //console.log(event);
   }
 
   async dismiss() {
@@ -236,17 +236,19 @@ export class HomePage implements OnInit {
   }
 
   
-  startTour() {
-    setTimeout(() => this.joyrideService.startTour(this.tourOptions), 200);
+  startTour(opts: JoyrideOptions) {
+    setTimeout(() => this.joyrideService.startTour(opts), 200);
   }
 
   async setIntroductionStatus() {
+    this.joyrideService.closeTour();
+    this.chartDatasets = [];
     await Preferences.set({key: 'introCompleted', value: 'true'});
   }
 
-  async getIntroductionStatus(): Promise<string> {
+  async getIntroductionStatus(): Promise<boolean> {
     const { value } = await Preferences.get({key: 'introCompleted'});
-    return value ?? 'false';
+    return value === 'true';
   }
 
   async resetChart() {
@@ -267,25 +269,6 @@ export class HomePage implements OnInit {
     });
     await alert.present();
   }
-
-  /* async presentProfileModal() {
-    const screenHeight: number = this.platform.height();
-    const screenWidth: number = this.platform.width();
-    let breakpoint: number;
-    if (screenWidth < 576) breakpoint = (this.iOSMode ? 515 : 433) / screenHeight;
-    else breakpoint = (this.iOSMode ? 294 : 265) / screenHeight;
-    const modal = await this.modalCtrl.create({
-      component: ProfileModalPage,
-      breakpoints: [0,  breakpoint],
-      initialBreakpoint: breakpoint,
-      handle: true,
-      handleBehavior: 'cycle',
-      backdropDismiss: false
-    });
-    await modal.present();
-    const { data } = await modal.onDidDismiss();
-    if (data) this.addDatasets(data);
-  } */
 
   addToDataset() {
     this.closeProfileModal();
@@ -314,31 +297,48 @@ export class HomePage implements OnInit {
     this.isProfileModalOpen = false;
   }
 
-  profileIntro() {
-    this.openProfileModal();
-    //setTimeout(null, 1000)
+  async presentShareModal() {
+    const base64Img: string = this.convertChartToBase64();
+    const shareOptions: ShareOptions = {
+      files: [base64Img],
+      title: 'My Eldora Tasting Chart',
+      text: "Here are the origins I tried and the flavors I picked up",
+      dialogTitle: 'Share Chart'
+    }
+
+    const canShare: CanShareResult = await Share.canShare();
+    (!canShare.value) ? this.browserShare(shareOptions) : Share.share(shareOptions);
   }
 
-  profileIntroDone() {
-    this.closeProfileModal();
-    //setTimeout(()=> {}, 500)
+  private convertChartToBase64() {
+    return this.chartCanvas.chart!.toBase64Image('image/webp', .8);
   }
 
-  async showProfileIntro() {
-    //this.isProfileModalOpen = true;
-    /* const screenHeight: number = this.platform.height();
-    const screenWidth: number = this.platform.width();
-    let breakpoint: number;
-    if (screenWidth < 576) breakpoint = (this.iOSMode ? 515 : 433) / screenHeight;
-    else breakpoint = (this.iOSMode ? 294 : 265) / screenHeight;
-    const modal = await this.modalCtrl.create({
-      component: ProfileModalPage,
-      breakpoints: [0,  breakpoint],
-      initialBreakpoint: breakpoint,
-      handle: true,
-      handleBehavior: 'cycle',
-      backdropDismiss: false
-    });
-    await modal.present(); */
+  private base64ToBlob(base64: string) {
+    const arr = base64.split(',');
+    const mime = arr[0].match(/:(.*?);/)[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    let u8arr = new Uint8Array(n);
+    while(n--){ u8arr[n] = bstr.charCodeAt(n) }
+
+    return new Blob([u8arr], {type:mime});
+  }
+
+  private blobToFile(blob: Blob, fileName: string) {
+    return new File([blob], fileName, { type: 'image/webp' })
+  }
+
+  private async browserShare(options: ShareOptions) {
+    console.log('start');
+    let {url, text, title, files: f } = options;
+    const files = f.map((file: string) => this.blobToFile(this.base64ToBlob(file), `${title}.webp`));
+    if (navigator.share) {
+      try {
+        await navigator.share({ url, text, title, files });
+      }
+      catch(err) { console.error('navigator share', err) }
+    }
+    else console.error('navigator share not available')
   }
 }

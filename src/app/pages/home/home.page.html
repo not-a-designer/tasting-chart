@@ -9,6 +9,7 @@
     <ion-buttons slot="end">
       <ion-button 
         joyrideStep="step6" 
+        stepPosition="bottom"
         [title]="'Reset Chart'" 
         [text]="stepContent[5]" 
         [doneTemplate]="doneButton"
@@ -17,12 +18,12 @@
         color="danger" 
         fill="solid" 
         (click)="resetChart()">
-        <ion-label>Reset</ion-label>
+        <ion-icon slot="icon-only" name="refresh"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
-<ion-content color="dark" scrollY="false">
+<!-- <ion-content color="dark" scrollY="false"> -->
   <canvas 
   joyrideStep="step1"
   [title]="'Chart'"
@@ -35,7 +36,31 @@
   [labels]="labels" 
   [options]="chartOptions" 
   type="radar"></canvas>
-</ion-content>
+<!-- </ion-content> -->
+<ion-footer>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="presentShareModal()">
+        <ion-icon name="share-social" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-buttons slot="end">
+      <ion-button 
+        color="warning"
+        joyrideStep="step2" 
+        stepPosition="top"
+        [title]="'Add Profile'" 
+        [text]="stepContent[1]" 
+        [nextTemplate]="nextButton"
+        [prevTemplate]="prevButton"
+        [doneTemplate]="doneButton"
+        (next)="!introStatus ? openProfileModal() : setIntroductionStatus()"
+        (click)="openProfileModal()">
+        <ion-icon name="add"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>
 <ng-template #closeButton>
   <ion-button fill="clear">
     <ion-icon name="close" color="light" slot="icon-only"></ion-icon>
@@ -45,23 +70,25 @@
   <ion-button color="medium">Prev</ion-button>
 </ng-template>
 <ng-template #nextButton>
-  <ion-button color="medium">Next</ion-button>
+  <ion-button color="medium">{{ introStatus ? 'Done' : 'Next' }}</ion-button>
 </ng-template>
 <ng-template #doneButton>
   <ion-button color="secondary">Done</ion-button>
 </ng-template>
-<ion-fab vertical="bottom" horizontal="end">
+<!-- <ion-fab vertical="bottom" horizontal="end">
   <ion-fab-button 
     joyrideStep="step2" 
+    stepPosition="top"
     [title]="'Add Profile'" 
     [text]="stepContent[1]" 
     [nextTemplate]="nextButton"
     [prevTemplate]="prevButton"
-    (next)="openProfileModal()"
+    [doneTemplate]="doneButton"
+    (next)="!introStatus ? openProfileModal() : setIntroductionStatus()"
     (click)="openProfileModal()">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
-</ion-fab>
+</ion-fab> -->
 
 <ion-modal 
   [isOpen]="isProfileModalOpen" 
@@ -96,6 +123,7 @@
                 <ion-input 
                   joyrideStep="step3" 
                   [title]="'Chocolate Origin'"
+                  stepPosition="top"
                   [text]="stepContent[2]"
                   (prev)="closeProfileModal()"
                   formControlName="origin" 
@@ -109,6 +137,7 @@
                 <ion-input 
                   joyrideStep="step4"
                   [title]="'Percent'"
+                  stepPosition="top"
                   [text]="stepContent[3]"
                   formControlName="percent" 
                   placeholder="ex: 70"></ion-input>

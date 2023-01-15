@@ -8,7 +8,6 @@ import { NgChartsModule} from 'ng2-charts';
 import { environment } from '../environments/environment'
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
-import { SavedProfilesService } from './services/saved-profiles.service';
 import { JoyrideModule } from 'ngx-joyride';
 
 @NgModule({
@@ -22,7 +21,6 @@ import { JoyrideModule } from 'ngx-joyride';
     AppRoutingModule
   ],
   providers: [
-    SavedProfilesService,
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy }
   ],
   bootstrap: [AppComponent],
